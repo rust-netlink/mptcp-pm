@@ -9,10 +9,8 @@ mod macros;
 mod message;
 
 pub use address::{
-    MptcpPathManagerAddressAttr,
-    MptcpPathManagerAddressAttrFlag,
-    MptcpPathManagerAddressGetRequest,
-    MptcpPathManagerAddressHandle,
+    MptcpPathManagerAddressAttr, MptcpPathManagerAddressAttrFlag,
+    MptcpPathManagerAddressGetRequest, MptcpPathManagerAddressHandle,
 };
 #[cfg(feature = "tokio_socket")]
 pub use connection::new_connection;
@@ -20,9 +18,7 @@ pub use connection::new_connection_with_socket;
 pub use error::MptcpPathManagerError;
 pub use handle::MptcpPathManagerHandle;
 pub use limits::{
-    MptcpPathManagerLimitsAttr,
-    MptcpPathManagerLimitsGetRequest,
-    MptcpPathManagerLimitsHandle,
+    MptcpPathManagerLimitsAttr, MptcpPathManagerLimitsGetRequest, MptcpPathManagerLimitsHandle,
 };
 pub use message::{MptcpPathManagerAttr, MptcpPathManagerCmd, MptcpPathManagerMessage};
 

@@ -4,10 +4,7 @@ use futures::TryStream;
 use netlink_packet_generic::GenlMessage;
 
 use crate::{
-    mptcp_execute,
-    MptcpPathManagerError,
-    MptcpPathManagerHandle,
-    MptcpPathManagerMessage,
+    mptcp_execute, MptcpPathManagerError, MptcpPathManagerHandle, MptcpPathManagerMessage,
 };
 
 pub struct MptcpPathManagerLimitsGetRequest {

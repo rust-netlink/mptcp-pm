@@ -7,12 +7,8 @@ use netlink_packet_generic::GenlMessage;
 use netlink_packet_utils::DecodeError;
 
 use crate::{
-    try_mptcp,
-    MptcpPathManagerAddressHandle,
-    MptcpPathManagerCmd,
-    MptcpPathManagerError,
-    MptcpPathManagerLimitsHandle,
-    MptcpPathManagerMessage,
+    try_mptcp, MptcpPathManagerAddressHandle, MptcpPathManagerCmd, MptcpPathManagerError,
+    MptcpPathManagerLimitsHandle, MptcpPathManagerMessage,
 };
 
 #[derive(Clone, Debug)]

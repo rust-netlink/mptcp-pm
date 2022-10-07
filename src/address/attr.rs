@@ -7,9 +7,7 @@ use byteorder::{ByteOrder, NativeEndian};
 use netlink_packet_utils::{
     nla::{DefaultNla, Nla, NlaBuffer},
     parsers::{parse_i32, parse_ip, parse_u16, parse_u32, parse_u8},
-    DecodeError,
-    Emitable,
-    Parseable,
+    DecodeError, Emitable, Parseable,
 };
 
 const MPTCP_PM_ADDR_ATTR_FAMILY: u16 = 1;

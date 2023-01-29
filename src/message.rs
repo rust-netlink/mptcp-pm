@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 
 use anyhow::Context;
-use netlink_packet_core::DecodeError;
 use netlink_packet_generic::{GenlFamily, GenlHeader};
 use netlink_packet_utils::{
     nla::{DefaultNla, Nla, NlasIterator},
-    Emitable, Parseable, ParseableParametrized,
+    DecodeError, Emitable, Parseable, ParseableParametrized,
 };
 
 use crate::{address::MptcpPathManagerAddressAttr, limits::MptcpPathManagerLimitsAttr};

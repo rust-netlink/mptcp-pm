@@ -7,8 +7,9 @@ use netlink_packet_generic::GenlMessage;
 use netlink_packet_utils::DecodeError;
 
 use crate::{
-    try_mptcp, MptcpPathManagerAddressHandle, MptcpPathManagerCmd, MptcpPathManagerError,
-    MptcpPathManagerLimitsHandle, MptcpPathManagerMessage,
+    try_mptcp, MptcpPathManagerAddressHandle, MptcpPathManagerCmd,
+    MptcpPathManagerError, MptcpPathManagerLimitsHandle,
+    MptcpPathManagerMessage,
 };
 
 #[derive(Clone, Debug)]
@@ -37,11 +38,18 @@ impl MptcpPathManagerHandle {
         &mut self,
         message: NetlinkMessage<GenlMessage<MptcpPathManagerMessage>>,
     ) -> Result<
-        impl Stream<Item = Result<NetlinkMessage<GenlMessage<MptcpPathManagerMessage>>, DecodeError>>,
+        impl Stream<
+            Item = Result<
+                NetlinkMessage<GenlMessage<MptcpPathManagerMessage>>,
+                DecodeError,
+            >,
+        >,
         MptcpPathManagerError,
     > {
         self.handle.request(message).await.map_err(|e| {
-            MptcpPathManagerError::RequestFailed(format!("BUG: Request failed with {}", e))
+            MptcpPathManagerError::RequestFailed(format!(
+                "BUG: Request failed with {e}"
+            ))
         })
     }
 }
@@ -49,7 +57,10 @@ impl MptcpPathManagerHandle {
 pub(crate) async fn mptcp_execute(
     handle: &mut MptcpPathManagerHandle,
     mptcp_msg: MptcpPathManagerMessage,
-) -> impl TryStream<Ok = GenlMessage<MptcpPathManagerMessage>, Error = MptcpPathManagerError> {
+) -> impl TryStream<
+    Ok = GenlMessage<MptcpPathManagerMessage>,
+    Error = MptcpPathManagerError,
+> {
     let nl_header_flags = match mptcp_msg.cmd {
         MptcpPathManagerCmd::AddressGet => NLM_F_REQUEST | NLM_F_DUMP,
         MptcpPathManagerCmd::LimitsGet => NLM_F_REQUEST,
@@ -60,10 +71,15 @@ pub(crate) async fn mptcp_execute(
     nl_msg.header.flags = nl_header_flags;
 
     match handle.request(nl_msg).await {
-        Ok(response) => Either::Left(response.map(move |msg| Ok(try_mptcp!(msg)))),
+        Ok(response) => {
+            Either::Left(response.map(move |msg| Ok(try_mptcp!(msg))))
+        }
         Err(e) => Either::Right(
-            futures::future::err::<GenlMessage<MptcpPathManagerMessage>, MptcpPathManagerError>(e)
-                .into_stream(),
+            futures::future::err::<
+                GenlMessage<MptcpPathManagerMessage>,
+                MptcpPathManagerError,
+            >(e)
+            .into_stream(),
         ),
     }
 }

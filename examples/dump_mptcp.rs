@@ -22,7 +22,7 @@ async fn get_addresses() {
     }
     assert!(!msgs.is_empty());
     for msg in msgs {
-        println!("{:?}", msg);
+        println!("{msg:?}");
     }
 
     let mut limits_handle = handle.limits().get().execute().await;
@@ -33,6 +33,6 @@ async fn get_addresses() {
     }
     assert!(!msgs.is_empty());
     for msg in msgs {
-        println!("{:?}", msg);
+        println!("{msg:?}");
     }
 }

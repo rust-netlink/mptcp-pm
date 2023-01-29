@@ -4,7 +4,8 @@ use futures::TryStream;
 use netlink_packet_generic::GenlMessage;
 
 use crate::{
-    mptcp_execute, MptcpPathManagerError, MptcpPathManagerHandle, MptcpPathManagerMessage,
+    mptcp_execute, MptcpPathManagerError, MptcpPathManagerHandle,
+    MptcpPathManagerMessage,
 };
 
 pub struct MptcpPathManagerAddressGetRequest {
@@ -18,8 +19,10 @@ impl MptcpPathManagerAddressGetRequest {
 
     pub async fn execute(
         self,
-    ) -> impl TryStream<Ok = GenlMessage<MptcpPathManagerMessage>, Error = MptcpPathManagerError>
-    {
+    ) -> impl TryStream<
+        Ok = GenlMessage<MptcpPathManagerMessage>,
+        Error = MptcpPathManagerError,
+    > {
         let MptcpPathManagerAddressGetRequest { mut handle } = self;
 
         let mptcp_msg = MptcpPathManagerMessage::new_address_get();

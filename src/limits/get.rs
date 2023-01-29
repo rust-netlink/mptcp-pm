@@ -4,7 +4,8 @@ use futures::TryStream;
 use netlink_packet_generic::GenlMessage;
 
 use crate::{
-    mptcp_execute, MptcpPathManagerError, MptcpPathManagerHandle, MptcpPathManagerMessage,
+    mptcp_execute, MptcpPathManagerError, MptcpPathManagerHandle,
+    MptcpPathManagerMessage,
 };
 
 pub struct MptcpPathManagerLimitsGetRequest {
@@ -18,8 +19,10 @@ impl MptcpPathManagerLimitsGetRequest {
 
     pub async fn execute(
         self,
-    ) -> impl TryStream<Ok = GenlMessage<MptcpPathManagerMessage>, Error = MptcpPathManagerError>
-    {
+    ) -> impl TryStream<
+        Ok = GenlMessage<MptcpPathManagerMessage>,
+        Error = MptcpPathManagerError,
+    > {
         let MptcpPathManagerLimitsGetRequest { mut handle } = self;
 
         let mptcp_msg = MptcpPathManagerMessage::new_limits_get();

@@ -36,23 +36,31 @@ impl Nla for MptcpPathManagerLimitsAttr {
 
     fn emit_value(&self, buffer: &mut [u8]) {
         match self {
-            Self::RcvAddAddrs(d) | Self::Subflows(d) => NativeEndian::write_u32(buffer, *d),
+            Self::RcvAddAddrs(d) | Self::Subflows(d) => {
+                NativeEndian::write_u32(buffer, *d)
+            }
             Self::Other(ref attr) => attr.emit(buffer),
         }
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for MptcpPathManagerLimitsAttr {
+impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
+    for MptcpPathManagerLimitsAttr
+{
     fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
             MPTCP_PM_ATTR_RCV_ADD_ADDRS => Self::RcvAddAddrs(
-                parse_u32(payload).context("Invalid MPTCP_PM_ATTR_RCV_ADD_ADDRS value")?,
+                parse_u32(payload)
+                    .context("Invalid MPTCP_PM_ATTR_RCV_ADD_ADDRS value")?,
             ),
-            MPTCP_PM_ATTR_SUBFLOWS => {
-                Self::Subflows(parse_u32(payload).context("Invalid MPTCP_PM_ATTR_SUBFLOWS value")?)
-            }
-            _ => Self::Other(DefaultNla::parse(buf).context("invalid NLA (unknown kind)")?),
+            MPTCP_PM_ATTR_SUBFLOWS => Self::Subflows(
+                parse_u32(payload)
+                    .context("Invalid MPTCP_PM_ATTR_SUBFLOWS value")?,
+            ),
+            _ => Self::Other(
+                DefaultNla::parse(buf).context("invalid NLA (unknown kind)")?,
+            ),
         })
     }
 }

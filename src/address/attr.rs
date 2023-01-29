@@ -66,11 +66,21 @@ fn u32_to_vec_flags(value: u32) -> Vec<MptcpPathManagerAddressAttrFlag> {
 impl From<&MptcpPathManagerAddressAttrFlag> for u32 {
     fn from(v: &MptcpPathManagerAddressAttrFlag) -> u32 {
         match v {
-            MptcpPathManagerAddressAttrFlag::Signal => MPTCP_PM_ADDR_FLAG_SIGNAL,
-            MptcpPathManagerAddressAttrFlag::Subflow => MPTCP_PM_ADDR_FLAG_SUBFLOW,
-            MptcpPathManagerAddressAttrFlag::Backup => MPTCP_PM_ADDR_FLAG_BACKUP,
-            MptcpPathManagerAddressAttrFlag::Fullmesh => MPTCP_PM_ADDR_FLAG_FULLMESH,
-            MptcpPathManagerAddressAttrFlag::Implicit => MPTCP_PM_ADDR_FLAG_IMPLICIT,
+            MptcpPathManagerAddressAttrFlag::Signal => {
+                MPTCP_PM_ADDR_FLAG_SIGNAL
+            }
+            MptcpPathManagerAddressAttrFlag::Subflow => {
+                MPTCP_PM_ADDR_FLAG_SUBFLOW
+            }
+            MptcpPathManagerAddressAttrFlag::Backup => {
+                MPTCP_PM_ADDR_FLAG_BACKUP
+            }
+            MptcpPathManagerAddressAttrFlag::Fullmesh => {
+                MPTCP_PM_ADDR_FLAG_FULLMESH
+            }
+            MptcpPathManagerAddressAttrFlag::Implicit => {
+                MPTCP_PM_ADDR_FLAG_IMPLICIT
+            }
             MptcpPathManagerAddressAttrFlag::Other(d) => *d,
         }
     }
@@ -114,7 +124,9 @@ impl Nla for MptcpPathManagerAddressAttr {
 
     fn emit_value(&self, buffer: &mut [u8]) {
         match self {
-            Self::Family(d) | Self::Port(d) => NativeEndian::write_u16(buffer, *d),
+            Self::Family(d) | Self::Port(d) => {
+                NativeEndian::write_u16(buffer, *d)
+            }
             Self::Addr4(i) => buffer.copy_from_slice(&i.octets()),
             Self::Addr6(i) => buffer.copy_from_slice(&i.octets()),
             Self::Id(d) => buffer[0] = *d,
@@ -131,12 +143,14 @@ impl Nla for MptcpPathManagerAddressAttr {
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for MptcpPathManagerAddressAttr {
+impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
+    for MptcpPathManagerAddressAttr
+{
     fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
             MPTCP_PM_ADDR_ATTR_FAMILY => {
-                let err_msg = format!("Invalid MPTCP_PM_ADDR_ATTR_FAMILY value {:?}", payload);
+                let err_msg = format!("Invalid MPTCP_PM_ADDR_ATTR_FAMILY value {payload:?}");
                 Self::Family(parse_u16(payload).context(err_msg)?)
             }
             MPTCP_PM_ADDR_ATTR_ID => {

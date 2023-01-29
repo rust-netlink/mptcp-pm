@@ -59,7 +59,9 @@ async fn assert_empty_addresses_and_limits() {
     let mptcp_nlas = &msgs[0].payload.nlas;
     assert_eq!(
         mptcp_nlas[0],
-        MptcpPathManagerAttr::Limits(MptcpPathManagerLimitsAttr::RcvAddAddrs(0))
+        MptcpPathManagerAttr::Limits(MptcpPathManagerLimitsAttr::RcvAddAddrs(
+            0
+        ))
     );
     assert_eq!(
         mptcp_nlas[1],

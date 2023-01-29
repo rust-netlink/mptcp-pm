@@ -7,7 +7,9 @@ use netlink_packet_utils::{
     DecodeError, Emitable, Parseable, ParseableParametrized,
 };
 
-use crate::{address::MptcpPathManagerAddressAttr, limits::MptcpPathManagerLimitsAttr};
+use crate::{
+    address::MptcpPathManagerAddressAttr, limits::MptcpPathManagerLimitsAttr,
+};
 
 const MPTCP_PM_CMD_GET_ADDR: u8 = 3;
 const MPTCP_PM_CMD_GET_LIMITS: u8 = 6;
@@ -113,12 +115,15 @@ impl Emitable for MptcpPathManagerMessage {
 fn parse_nlas(buffer: &[u8]) -> Result<Vec<MptcpPathManagerAttr>, DecodeError> {
     let mut nlas = Vec::new();
     for nla in NlasIterator::new(buffer) {
-        let error_msg = format!("Failed to parse mptcp address message attribute {:?}", nla);
+        let error_msg =
+            format!("Failed to parse mptcp address message attribute {nla:?}");
         let nla = &nla.context(error_msg)?;
         match nla.kind() {
             MPTCP_PM_ATTR_ADDR => {
                 for addr_nla in NlasIterator::new(nla.value()) {
-                    let error_msg = format!("Failed to parse MPTCP_PM_ATTR_ADDR {:?}", addr_nla);
+                    let error_msg = format!(
+                        "Failed to parse MPTCP_PM_ATTR_ADDR {addr_nla:?}"
+                    );
                     let addr_nla = &addr_nla.context(error_msg)?;
 
                     nlas.push(MptcpPathManagerAttr::Address(
@@ -127,10 +132,13 @@ fn parse_nlas(buffer: &[u8]) -> Result<Vec<MptcpPathManagerAttr>, DecodeError> {
                     ))
                 }
             }
-            MPTCP_PM_ATTR_RCV_ADD_ADDRS => nlas.push(MptcpPathManagerAttr::Limits(
-                MptcpPathManagerLimitsAttr::parse(nla)
-                    .context("Failed to parse MPTCP_PM_ATTR_RCV_ADD_ADDRS")?,
-            )),
+            MPTCP_PM_ATTR_RCV_ADD_ADDRS => {
+                nlas.push(MptcpPathManagerAttr::Limits(
+                    MptcpPathManagerLimitsAttr::parse(nla).context(
+                        "Failed to parse MPTCP_PM_ATTR_RCV_ADD_ADDRS",
+                    )?,
+                ))
+            }
             MPTCP_PM_ATTR_SUBFLOWS => nlas.push(MptcpPathManagerAttr::Limits(
                 MptcpPathManagerLimitsAttr::parse(nla)
                     .context("Failed to parse MPTCP_PM_ATTR_RCV_ADD_ADDRS")?,
@@ -144,7 +152,10 @@ fn parse_nlas(buffer: &[u8]) -> Result<Vec<MptcpPathManagerAttr>, DecodeError> {
 }
 
 impl ParseableParametrized<[u8], GenlHeader> for MptcpPathManagerMessage {
-    fn parse_with_param(buffer: &[u8], header: GenlHeader) -> Result<Self, DecodeError> {
+    fn parse_with_param(
+        buffer: &[u8],
+        header: GenlHeader,
+    ) -> Result<Self, DecodeError> {
         Ok(match header.cmd {
             MPTCP_PM_CMD_GET_ADDR => Self {
                 cmd: MptcpPathManagerCmd::AddressGet,
@@ -156,8 +167,7 @@ impl ParseableParametrized<[u8], GenlHeader> for MptcpPathManagerMessage {
             },
             cmd => {
                 return Err(DecodeError::from(format!(
-                    "Unsupported mptcp reply command: {}",
-                    cmd
+                    "Unsupported mptcp reply command: {cmd}"
                 )))
             }
         })

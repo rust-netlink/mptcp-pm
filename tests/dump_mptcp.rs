@@ -12,14 +12,12 @@ fn test_mptcp_empty_addresses_and_limits() {
         .arg("net.mptcp.enabled=1")
         .spawn()
         .unwrap();
-    // OK to fail as Github CI has no ip-mptcp
     Command::new("ip")
         .arg("mptcp")
         .arg("endpoint")
         .arg("flush")
         .spawn()
-        .ok();
-    // OK to fail as Github CI has no ip-mptcp
+        .unwrap();
     Command::new("ip")
         .arg("mptcp")
         .arg("limits")
@@ -29,7 +27,9 @@ fn test_mptcp_empty_addresses_and_limits() {
         .arg("add_addr_accepted")
         .arg("0")
         .spawn()
-        .ok();
+        .unwrap();
+    // Sleep 1 second for kernel to finish its work
+    std::thread::sleep(std::time::Duration::from_secs(1));
 
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_io()

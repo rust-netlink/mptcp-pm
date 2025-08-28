@@ -2,12 +2,10 @@
 
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-use anyhow::Context;
-use byteorder::{ByteOrder, NativeEndian};
-use netlink_packet_utils::{
-    nla::{DefaultNla, Nla, NlaBuffer},
-    parsers::{parse_i32, parse_ip, parse_u16, parse_u32, parse_u8},
-    DecodeError, Emitable, Parseable,
+use netlink_packet_core::{
+    emit_i32, emit_u16, emit_u32, parse_i32, parse_ip, parse_u16, parse_u32,
+    parse_u8, DecodeError, DefaultNla, Emitable, ErrorContext, Nla, NlaBuffer,
+    Parseable,
 };
 
 const MPTCP_PM_ADDR_ATTR_FAMILY: u16 = 1;
@@ -124,9 +122,7 @@ impl Nla for MptcpPathManagerAddressAttr {
 
     fn emit_value(&self, buffer: &mut [u8]) {
         match self {
-            Self::Family(d) | Self::Port(d) => {
-                NativeEndian::write_u16(buffer, *d)
-            }
+            Self::Family(d) | Self::Port(d) => emit_u16(buffer, *d).unwrap(),
             Self::Addr4(i) => buffer.copy_from_slice(&i.octets()),
             Self::Addr6(i) => buffer.copy_from_slice(&i.octets()),
             Self::Id(d) => buffer[0] = *d,
@@ -135,9 +131,9 @@ impl Nla for MptcpPathManagerAddressAttr {
                 for flag in flags {
                     value += u32::from(flag);
                 }
-                NativeEndian::write_u32(buffer, value)
+                emit_u32(buffer, value).unwrap()
             }
-            Self::IfIndex(d) => NativeEndian::write_i32(buffer, *d),
+            Self::IfIndex(d) => emit_i32(buffer, *d).unwrap(),
             Self::Other(ref attr) => attr.emit(buffer),
         }
     }

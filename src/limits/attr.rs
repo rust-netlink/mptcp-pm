@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-use anyhow::Context;
-use byteorder::{ByteOrder, NativeEndian};
-use netlink_packet_utils::{
-    nla::{DefaultNla, Nla, NlaBuffer},
-    parsers::parse_u32,
-    DecodeError, Emitable, Parseable,
+use netlink_packet_core::{
+    emit_u32, parse_u32, DecodeError, DefaultNla, Emitable, ErrorContext, Nla,
+    NlaBuffer, Parseable,
 };
 
 const MPTCP_PM_ATTR_RCV_ADD_ADDRS: u16 = 2;
@@ -37,7 +34,7 @@ impl Nla for MptcpPathManagerLimitsAttr {
     fn emit_value(&self, buffer: &mut [u8]) {
         match self {
             Self::RcvAddAddrs(d) | Self::Subflows(d) => {
-                NativeEndian::write_u32(buffer, *d)
+                emit_u32(buffer, *d).unwrap()
             }
             Self::Other(ref attr) => attr.emit(buffer),
         }

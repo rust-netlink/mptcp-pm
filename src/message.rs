@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 
 use netlink_packet_core::{
-    DecodeError, DefaultNla, Emitable, ErrorContext, Nla, NlasIterator,
-    Parseable, ParseableParametrized,
+    append_bytes, DecodeError, DefaultNla, Emitable, EncodeError, ErrorContext,
+    Nla, NlasIterator, Parseable, ParseableParametrized,
 };
 use netlink_packet_generic::{GenlFamily, GenlHeader};
 
@@ -40,14 +40,6 @@ pub enum MptcpPathManagerAttr {
 }
 
 impl Nla for MptcpPathManagerAttr {
-    fn value_len(&self) -> usize {
-        match self {
-            Self::Address(attr) => attr.value_len(),
-            Self::Limits(attr) => attr.value_len(),
-            Self::Other(attr) => attr.value_len(),
-        }
-    }
-
     fn kind(&self) -> u16 {
         match self {
             Self::Address(attr) => attr.kind(),
@@ -56,12 +48,13 @@ impl Nla for MptcpPathManagerAttr {
         }
     }
 
-    fn emit_value(&self, buffer: &mut [u8]) {
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
         match self {
-            Self::Address(attr) => attr.emit_value(buffer),
-            Self::Limits(attr) => attr.emit_value(buffer),
-            Self::Other(ref attr) => attr.emit(buffer),
+            Self::Address(attr) => attr.emit_value(out)?,
+            Self::Limits(attr) => attr.emit_value(out)?,
+            Self::Other(attr) => append_bytes(out, attr.value()),
         }
+        Ok(())
     }
 }
 
@@ -102,48 +95,37 @@ impl MptcpPathManagerMessage {
 }
 
 impl Emitable for MptcpPathManagerMessage {
-    fn buffer_len(&self) -> usize {
-        self.nlas.as_slice().buffer_len()
-    }
-
-    fn emit(&self, buffer: &mut [u8]) {
-        self.nlas.as_slice().emit(buffer)
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
+        self.nlas.as_slice().emit(out)
     }
 }
 
 fn parse_nlas(buffer: &[u8]) -> Result<Vec<MptcpPathManagerAttr>, DecodeError> {
     let mut nlas = Vec::new();
-    for nla in NlasIterator::new(buffer) {
-        let error_msg =
-            format!("Failed to parse mptcp address message attribute {nla:?}");
-        let nla = &nla.context(error_msg)?;
+    for nla in NlasIterator::new(buffer)? {
         match nla.kind() {
             MPTCP_PM_ATTR_ADDR => {
-                for addr_nla in NlasIterator::new(nla.value()) {
-                    let error_msg = format!(
-                        "Failed to parse MPTCP_PM_ATTR_ADDR {addr_nla:?}"
-                    );
-                    let addr_nla = &addr_nla.context(error_msg)?;
-
+                for addr_nla in NlasIterator::new(nla.value())? {
                     nlas.push(MptcpPathManagerAttr::Address(
-                        MptcpPathManagerAddressAttr::parse(addr_nla)
+                        MptcpPathManagerAddressAttr::parse(&addr_nla)
                             .context("Failed to parse MPTCP_PM_ATTR_ADDR")?,
                     ))
                 }
             }
             MPTCP_PM_ATTR_RCV_ADD_ADDRS => {
                 nlas.push(MptcpPathManagerAttr::Limits(
-                    MptcpPathManagerLimitsAttr::parse(nla).context(
+                    MptcpPathManagerLimitsAttr::parse(&nla).context(
                         "Failed to parse MPTCP_PM_ATTR_RCV_ADD_ADDRS",
                     )?,
                 ))
             }
             MPTCP_PM_ATTR_SUBFLOWS => nlas.push(MptcpPathManagerAttr::Limits(
-                MptcpPathManagerLimitsAttr::parse(nla)
+                MptcpPathManagerLimitsAttr::parse(&nla)
                     .context("Failed to parse MPTCP_PM_ATTR_RCV_ADD_ADDRS")?,
             )),
             _ => nlas.push(MptcpPathManagerAttr::Other(
-                DefaultNla::parse(nla).context("invalid NLA (unknown kind)")?,
+                DefaultNla::parse(&nla)
+                    .context("invalid NLA (unknown kind)")?,
             )),
         }
     }

@@ -26,11 +26,11 @@ futures = "0.3.17"
 log = "0.4.14"
 thiserror = "1.0.29"
 tokio = { version = "1.0.1", features = ["rt"], optional = true }
-genetlink = { default-features = false, version = "0.3.1" }
-netlink-packet-core = { version = "0.9" }
-netlink-packet-generic = { version = "0.5" }
-netlink-proto = { default-features = false, version = "0.14.1" }
-netlink-sys = { version = "0.9" }
+genetlink = { default-features = false, version = "1.0.0-rc2" }
+netlink-packet-core = { version = "1.0.0-rc2" }
+netlink-packet-generic = "1.0.0-rc2"
+netlink-proto = { default-features = false, version = "1.0.0-rc2" }
+netlink-sys = { version = "1.0.0-rc2" }
 
 [dev-dependencies]
 tokio = { version = "1.11.0", features = ["macros", "rt", "rt-multi-thread"] }

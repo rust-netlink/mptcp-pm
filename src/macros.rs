@@ -23,7 +23,7 @@ macro_rules! try_mptcp {
             }
             Err(e) => {
                 return Err(MptcpPathManagerError::Bug(format!(
-                    "BUG: decode error {:?}",
+                    "BUG: netlink error {:?}",
                     e
                 )))
             }

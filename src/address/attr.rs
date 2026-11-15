@@ -3,9 +3,9 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use netlink_packet_core::{
-    emit_i32, emit_u16, emit_u32, parse_i32, parse_ip, parse_u16, parse_u32,
-    parse_u8, DecodeError, DefaultNla, Emitable, ErrorContext, Nla, NlaBuffer,
-    Parseable,
+    append_bytes, append_i32, append_u16, append_u32, parse_i32, parse_ip,
+    parse_u16, parse_u32, parse_u8, DecodeError, DefaultNla, EncodeError,
+    ErrorContext, Nla, NlaBuffer, Parseable,
 };
 
 const MPTCP_PM_ADDR_ATTR_FAMILY: u16 = 1;
@@ -97,16 +97,6 @@ pub enum MptcpPathManagerAddressAttr {
 }
 
 impl Nla for MptcpPathManagerAddressAttr {
-    fn value_len(&self) -> usize {
-        match self {
-            Self::Family(_) | Self::Port(_) => 2,
-            Self::Addr4(_) | Self::Flags(_) | Self::IfIndex(_) => 4,
-            Self::Id(_) => 1,
-            Self::Addr6(_) => 16,
-            Self::Other(attr) => attr.value_len(),
-        }
-    }
-
     fn kind(&self) -> u16 {
         match self {
             Self::Family(_) => MPTCP_PM_ADDR_ATTR_FAMILY,
@@ -120,29 +110,28 @@ impl Nla for MptcpPathManagerAddressAttr {
         }
     }
 
-    fn emit_value(&self, buffer: &mut [u8]) {
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
         match self {
-            Self::Family(d) | Self::Port(d) => emit_u16(buffer, *d).unwrap(),
-            Self::Addr4(i) => buffer.copy_from_slice(&i.octets()),
-            Self::Addr6(i) => buffer.copy_from_slice(&i.octets()),
-            Self::Id(d) => buffer[0] = *d,
+            Self::Family(d) | Self::Port(d) => append_u16(out, *d),
+            Self::Addr4(i) => append_bytes(out, &i.octets()),
+            Self::Addr6(i) => append_bytes(out, &i.octets()),
+            Self::Id(d) => out.push(*d),
             Self::Flags(flags) => {
                 let mut value = 0u32;
                 for flag in flags {
                     value += u32::from(flag);
                 }
-                emit_u32(buffer, value).unwrap()
+                append_u32(out, value)
             }
-            Self::IfIndex(d) => emit_i32(buffer, *d).unwrap(),
-            Self::Other(ref attr) => attr.emit(buffer),
+            Self::IfIndex(d) => append_i32(out, *d),
+            Self::Other(attr) => append_bytes(out, attr.value()),
         }
+        Ok(())
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
-    for MptcpPathManagerAddressAttr
-{
-    fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
+impl<'a> Parseable<NlaBuffer<'a>> for MptcpPathManagerAddressAttr {
+    fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
             MPTCP_PM_ADDR_ATTR_FAMILY => {

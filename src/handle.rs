@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 use futures::{future::Either, FutureExt, Stream, StreamExt, TryStream};
-use genetlink::GenetlinkHandle;
-use netlink_packet_core::DecodeError;
+use genetlink::{GenetlinkError, GenetlinkHandle};
 use netlink_packet_core::{NetlinkMessage, NLM_F_DUMP, NLM_F_REQUEST};
 use netlink_packet_generic::GenlMessage;
 
@@ -41,7 +40,7 @@ impl MptcpPathManagerHandle {
         impl Stream<
             Item = Result<
                 NetlinkMessage<GenlMessage<MptcpPathManagerMessage>>,
-                DecodeError,
+                GenetlinkError,
             >,
         >,
         MptcpPathManagerError,
